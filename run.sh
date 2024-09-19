@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/zsh
+# or sh
 
 # Make this script executable
 chmod +x "$0"
