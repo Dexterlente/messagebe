@@ -1,18 +1,18 @@
 package handlers
 
 import (
-    "fmt"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"go-backend/internal/models"
 	"go-backend/internal/services"
 	"log"
 	"net/http"
-    "time"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
-    "github.com/dgrijalva/jwt-go" 
 )
 
 var mySigningKey = []byte("your_secret_key") 
