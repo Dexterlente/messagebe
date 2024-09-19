@@ -1,6 +1,7 @@
 package handlers
 
 import (
+    "fmt"
 	"database/sql"
 	"encoding/json"
 	"go-backend/internal/models"
@@ -21,12 +22,32 @@ func RegisterRoutes(db *sqlx.DB) {
     http.HandleFunc("/user", CreateUser(db))
     http.HandleFunc("/change-password", ChangePasswordHandlerFunc(db))
     http.HandleFunc("/login", LoginHandlerFunc(db))
+    http.HandleFunc("/validate-token", TokenValidationHandler)
 }
 
 
 
 func GetUsers(db *sqlx.DB) http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
+
+        tokenString := r.Header.Get("Authorization")
+        if tokenString == "" {
+            ErrorResponse(w, http.StatusUnauthorized, "Missing Authorization header")
+            return
+        }
+
+        token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+            if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+                return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+            }
+            return mySigningKey, nil
+        })
+
+        if err != nil || !token.Valid {
+            ErrorResponse(w, http.StatusUnauthorized, "Invalid token")
+            return
+        }
+
         users, err := services.GetUsers(db)
         if err != nil {
             ErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -115,4 +136,45 @@ func LoginHandlerFunc(db *sqlx.DB) http.HandlerFunc {
 
         JSONResponse(w, http.StatusOK, map[string]string{"token": t})
     }
+}
+
+func ValidateToken(tokenString string) (*jwt.Token, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return mySigningKey, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		if exp, ok := claims["exp"].(float64); ok {
+			if time.Unix(int64(exp), 0).Before(time.Now()) {
+				return nil, fmt.Errorf("token expired")
+			}
+		}
+		return token, nil
+	}
+
+	return nil, fmt.Errorf("invalid token")
+}
+
+func TokenValidationHandler(w http.ResponseWriter, r *http.Request) {
+	tokenString := r.Header.Get("Authorization")
+	if tokenString == "" {
+		http.Error(w, "Unauthorized: No token provided", http.StatusUnauthorized)
+		return
+	}
+
+	token, err := ValidateToken(tokenString)
+	if err != nil {
+		http.Error(w, "Unauthorized: "+err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "Token is valid. Claims: %v", token.Claims)
 }
