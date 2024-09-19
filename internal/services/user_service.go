@@ -18,3 +18,7 @@ func CreateUser(db *sqlx.DB, user *models.User) (int, error) {
 func ChangePassword(db *sqlx.DB, req *models.ChangePasswordRequest) error {
     return repositories.ChangePassword(db, req)
 }
+
+func GetUserByUsername(db *sqlx.DB, username string) (*models.User, error) {
+	return repositories.GetUserByUsername(db, username)
+}

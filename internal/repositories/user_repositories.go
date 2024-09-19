@@ -64,3 +64,14 @@ func ChangePassword(db *sqlx.DB, req *models.ChangePasswordRequest) error {
     log.Println("Password updated successfully")
     return nil
 }
+
+func GetUserByUsername(db *sqlx.DB, username string) (*models.User, error) {
+	var user models.User
+	query := "SELECT id, first_name, last_name, email, username, password, created_at, updated_at FROM users WHERE username=$1"
+	err := db.Get(&user, query, username)
+	if err != nil {
+		log.Printf("Error fetching user with username %s: %v", username, err)
+		return nil, err
+	}
+	return &user, nil
+}
