@@ -11,6 +11,7 @@ import (
 func runMigrations(db *sqlx.DB) error {
     migrations := []func(*sqlx.DB) error{
         migrateUsers,
+        migrateMessages,
         // migrateProducts,  // Example additional table migration
         // Add more migrations here
     }
@@ -70,5 +71,37 @@ func migrateUsers(db *sqlx.DB) error {
     }
 
     log.Println("Users table created successfully!")
+    return nil
+}
+
+
+func migrateMessages(db *sqlx.DB) error {
+    // Check if the table already exists
+    exists, err := tableExists(db, "messages")
+    if err != nil {
+        return fmt.Errorf("failed to check if messages table exists: %v", err)
+    }
+
+    // If the table exists, print a message and return
+    if exists {
+        log.Println("messages table already exists!")
+        return nil
+    }
+
+    // Create the table if it doesn't exist
+    _, err = db.Exec(`
+        CREATE TABLE  messages (
+            id SERIAL PRIMARY KEY,
+            sender_id INT REFERENCES users(id) ON DELETE CASCADE,
+            receiver_id INT REFERENCES users(id) ON DELETE CASCADE,
+            content TEXT NOT NULL,
+            sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    `)
+    if err != nil {
+        return fmt.Errorf("failed to create messages table: %v", err)
+    }
+
+    log.Println("Messages table created successfully!")
     return nil
 }
