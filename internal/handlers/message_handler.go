@@ -45,7 +45,7 @@ func SendMessageHandler(db *sqlx.DB) http.HandlerFunc {
 
 func GetMessagesHandler(db *sqlx.DB) http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
-        // Assume we're retrieving messages for a particular user (e.g., receiverID)
+
         receiverID := r.URL.Query().Get("receiver_id")
         if receiverID == "" {
             http.Error(w, "receiver_id is required", http.StatusBadRequest)
