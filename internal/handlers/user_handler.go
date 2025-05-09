@@ -20,13 +20,13 @@ var mySigningKey = []byte("your_secret_key")
 func RegisterRoutes(db *sqlx.DB) {
 	http.HandleFunc("/users", GetUsers(db))
 	http.HandleFunc("/user", CreateUser(db))
-	http.HandleFunc("/validated_id", GetUserIDs(db))
+	http.HandleFunc("/validate_id", GetUserID(db))
 	http.HandleFunc("/change-password", ChangePasswordHandlerFunc(db))
 	http.HandleFunc("/login", LoginHandlerFunc(db))
 	http.HandleFunc("/validate-token", TokenValidationHandler)
 }
 
-func GetUserIDs(db *sqlx.DB) http.HandlerFunc {
+func GetUserID(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.Header.Get("Authorization")
 		if tokenString == "" {
@@ -34,26 +34,28 @@ func GetUserIDs(db *sqlx.DB) http.HandlerFunc {
 			return
 		}
 
-		_, err := ValidateToken(tokenString)
+		token, err := ValidateToken(tokenString)
 		if err != nil {
 			ErrorResponse(w, http.StatusUnauthorized, "Invalid token: "+err.Error())
 			return
 		}
 
-		// Fetch users' IDs directly within this function
-		users, err := services.GetUsers(db)
-		if err != nil {
-			ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		var userID int
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			fmt.Printf("DEBUG: Token claims: %#v\n", claims)
+			if uid, ok := claims["user_id"].(float64); ok {
+				userID = int(uid)
+			} else {
+				ErrorResponse(w, http.StatusUnauthorized, "User ID not found in token")
+				return
+			}
+		} else {
+			ErrorResponse(w, http.StatusUnauthorized, "Invalid token claims")
 			return
 		}
 
-		var userIDs []int
-		for _, user := range users {
-			userIDs = append(userIDs, user.ID)
-		}
-
-		// Return the user IDs in the response
-		JSONResponse(w, http.StatusOK, userIDs)
+		// Return the single user ID in the response
+		JSONResponse(w, http.StatusOK, map[string]int{"user_id": userID})
 	}
 }
 
@@ -155,6 +157,7 @@ func LoginHandlerFunc(db *sqlx.DB) http.HandlerFunc {
 
 		token := jwt.New(jwt.SigningMethodHS256)
 		claims := token.Claims.(jwt.MapClaims)
+		claims["user_id"] = user.ID
 		claims["username"] = user.UserName
 		claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 
