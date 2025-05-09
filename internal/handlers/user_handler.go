@@ -15,127 +15,157 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var mySigningKey = []byte("your_secret_key") 
+var mySigningKey = []byte("your_secret_key")
 
 func RegisterRoutes(db *sqlx.DB) {
-    http.HandleFunc("/users", GetUsers(db))
-    http.HandleFunc("/user", CreateUser(db))
-    http.HandleFunc("/change-password", ChangePasswordHandlerFunc(db))
-    http.HandleFunc("/login", LoginHandlerFunc(db))
-    http.HandleFunc("/validate-token", TokenValidationHandler)
+	http.HandleFunc("/users", GetUsers(db))
+	http.HandleFunc("/user", CreateUser(db))
+	http.HandleFunc("/validated_id", GetUserIDs(db))
+	http.HandleFunc("/change-password", ChangePasswordHandlerFunc(db))
+	http.HandleFunc("/login", LoginHandlerFunc(db))
+	http.HandleFunc("/validate-token", TokenValidationHandler)
 }
 
+func GetUserIDs(db *sqlx.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenString := r.Header.Get("Authorization")
+		if tokenString == "" {
+			ErrorResponse(w, http.StatusUnauthorized, "Missing Authorization header")
+			return
+		}
 
+		_, err := ValidateToken(tokenString)
+		if err != nil {
+			ErrorResponse(w, http.StatusUnauthorized, "Invalid token: "+err.Error())
+			return
+		}
+
+		// Fetch users' IDs directly within this function
+		users, err := services.GetUsers(db)
+		if err != nil {
+			ErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		var userIDs []int
+		for _, user := range users {
+			userIDs = append(userIDs, user.ID)
+		}
+
+		// Return the user IDs in the response
+		JSONResponse(w, http.StatusOK, userIDs)
+	}
+}
 
 func GetUsers(db *sqlx.DB) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 
-        tokenString := r.Header.Get("Authorization")
-        if tokenString == "" {
-            ErrorResponse(w, http.StatusUnauthorized, "Missing Authorization header")
-            return
-        }
+		tokenString := r.Header.Get("Authorization")
+		if tokenString == "" {
+			ErrorResponse(w, http.StatusUnauthorized, "Missing Authorization header")
+			return
+		}
 
-        token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-            if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-                return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-            }
-            return mySigningKey, nil
-        })
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return mySigningKey, nil
+		})
 
-        if err != nil || !token.Valid {
-            ErrorResponse(w, http.StatusUnauthorized, "Invalid token")
-            return
-        }
+		if err != nil || !token.Valid {
+			ErrorResponse(w, http.StatusUnauthorized, "Invalid token")
+			return
+		}
 
-        users, err := services.GetUsers(db)
-        if err != nil {
-            ErrorResponse(w, http.StatusInternalServerError, err.Error())
-            return
-        }
-        JSONResponse(w, http.StatusOK, users)
-    }
+		users, err := services.GetUsers(db)
+		if err != nil {
+			ErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		JSONResponse(w, http.StatusOK, users)
+	}
 }
 
 func CreateUser(db *sqlx.DB) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        var user models.User
-        if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-            ErrorResponse(w, http.StatusBadRequest, err.Error())
-            return
-        }
+	return func(w http.ResponseWriter, r *http.Request) {
+		var user models.User
+		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+			ErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
 
-        id, err := services.CreateUser(db, &user)
-        if err != nil {
-            ErrorResponse(w, http.StatusInternalServerError, err.Error())
-            return
-        }
+		id, err := services.CreateUser(db, &user)
+		if err != nil {
+			ErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 
-        JSONResponse(w, http.StatusCreated, map[string]interface{}{"id": id})
-    }
+		JSONResponse(w, http.StatusCreated, map[string]interface{}{"id": id})
+	}
 }
 
 func ChangePasswordHandlerFunc(db *sqlx.DB) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        var req models.ChangePasswordRequest
-        if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-            http.Error(w, "Invalid request", http.StatusBadRequest)
-            return
-        }
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req models.ChangePasswordRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid request", http.StatusBadRequest)
+			return
+		}
 
-        log.Printf("ChangePasswordRequest: %+v", req)
+		log.Printf("ChangePasswordRequest: %+v", req)
 
-        err := services.ChangePassword(db, &req)
-        if err != nil {
-            switch err {
-            case sql.ErrNoRows:
-                http.Error(w, "User not found", http.StatusNotFound)
-            case bcrypt.ErrMismatchedHashAndPassword:
-                http.Error(w, "Old password is incorrect", http.StatusUnauthorized)
-            default:
-                http.Error(w, "Failed to change password", http.StatusInternalServerError)
-            }
-            return
-        }
+		err := services.ChangePassword(db, &req)
+		if err != nil {
+			switch err {
+			case sql.ErrNoRows:
+				http.Error(w, "User not found", http.StatusNotFound)
+			case bcrypt.ErrMismatchedHashAndPassword:
+				http.Error(w, "Old password is incorrect", http.StatusUnauthorized)
+			default:
+				http.Error(w, "Failed to change password", http.StatusInternalServerError)
+			}
+			return
+		}
 
-        w.WriteHeader(http.StatusOK)
-        json.NewEncoder(w).Encode(map[string]string{"message": "Password changed successfully"})
-    }
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Password changed successfully"})
+	}
 }
 
 func LoginHandlerFunc(db *sqlx.DB) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        var req models.LoginRequest
-        if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-            ErrorResponse(w, http.StatusBadRequest, err.Error())
-            return
-        }
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req models.LoginRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			ErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
 
-        user, err := services.GetUserByUsername(db, req.UserName)
-        if err != nil {
-            ErrorResponse(w, http.StatusUnauthorized, "Invalid credentials")
-            return
-        }
+		user, err := services.GetUserByUsername(db, req.UserName)
+		if err != nil {
+			ErrorResponse(w, http.StatusUnauthorized, "Invalid credentials")
+			return
+		}
 
-        err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
-        if err != nil {
-            ErrorResponse(w, http.StatusUnauthorized, "Invalid credentials")
-            return
-        }
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+		if err != nil {
+			ErrorResponse(w, http.StatusUnauthorized, "Invalid credentials")
+			return
+		}
 
-        token := jwt.New(jwt.SigningMethodHS256)
-        claims := token.Claims.(jwt.MapClaims)
-        claims["username"] = user.UserName
-        claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+		token := jwt.New(jwt.SigningMethodHS256)
+		claims := token.Claims.(jwt.MapClaims)
+		claims["username"] = user.UserName
+		claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 
-        t, err := token.SignedString(mySigningKey)
-        if err != nil {
-            ErrorResponse(w, http.StatusInternalServerError, "Could not create token")
-            return
-        }
+		t, err := token.SignedString(mySigningKey)
+		if err != nil {
+			ErrorResponse(w, http.StatusInternalServerError, "Could not create token")
+			return
+		}
 
-        JSONResponse(w, http.StatusOK, map[string]string{"token": t})
-    }
+		JSONResponse(w, http.StatusOK, map[string]string{"token": t})
+	}
 }
 
 func ValidateToken(tokenString string) (*jwt.Token, error) {
