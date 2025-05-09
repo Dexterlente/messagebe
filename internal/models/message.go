@@ -5,8 +5,8 @@ import (
 )
 
 type Message struct {
-	ID             int       `db:"id"`
-	ConversationID int       `db:"conversation_id"`
+	ID             int       `db:"id"`              // Pk of the message
+	ConversationID int       `db:"conversation_id"` // Fk to the conversation
 	SenderID       int       `db:"sender_id"`
 	ReceiverID     int       `db:"receiver_id"`
 	Content        string    `db:"content"`
