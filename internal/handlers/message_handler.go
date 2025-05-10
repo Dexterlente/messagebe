@@ -46,6 +46,12 @@ func SendMessageHandler(db *sqlx.DB) http.HandlerFunc {
 func GetMessagesHandler(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		senderID, err := GetUserID(r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+
 		receiverID := r.URL.Query().Get("receiver_id")
 		if receiverID == "" {
 			http.Error(w, "receiver_id is required", http.StatusBadRequest)
@@ -53,7 +59,10 @@ func GetMessagesHandler(db *sqlx.DB) http.HandlerFunc {
 		}
 
 		var messages []models.Message
-		err := db.Select(&messages, "SELECT * FROM messages WHERE receiver_id = $1", receiverID)
+		err = db.Select(&messages, `
+			SELECT * FROM messages 
+			WHERE receiver_id = $1 AND sender_id = $2
+		`, receiverID, senderID)
 		if err != nil {
 			http.Error(w, "Failed to retrieve messages", http.StatusInternalServerError)
 			return

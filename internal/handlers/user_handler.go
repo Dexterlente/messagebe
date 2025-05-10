@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"go-backend/internal/models"
 	"go-backend/internal/services"
@@ -10,53 +11,33 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var mySigningKey = []byte("your_secret_key")
 
-func RegisterRoutes(db *sqlx.DB) {
-	http.HandleFunc("/users", GetUsers(db))
-	http.HandleFunc("/user", CreateUser(db))
-	http.HandleFunc("/validate_id", GetUserID(db))
-	http.HandleFunc("/change-password", ChangePasswordHandlerFunc(db))
-	http.HandleFunc("/login", LoginHandlerFunc(db))
-	http.HandleFunc("/validate-token", TokenValidationHandler)
-}
-
-func GetUserID(db *sqlx.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		tokenString := r.Header.Get("Authorization")
-		if tokenString == "" {
-			ErrorResponse(w, http.StatusUnauthorized, "Missing Authorization header")
-			return
-		}
-
-		token, err := ValidateToken(tokenString)
-		if err != nil {
-			ErrorResponse(w, http.StatusUnauthorized, "Invalid token: "+err.Error())
-			return
-		}
-
-		var userID int
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			fmt.Printf("DEBUG: Token claims: %#v\n", claims)
-			if uid, ok := claims["user_id"].(float64); ok {
-				userID = int(uid)
-			} else {
-				ErrorResponse(w, http.StatusUnauthorized, "User ID not found in token")
-				return
-			}
-		} else {
-			ErrorResponse(w, http.StatusUnauthorized, "Invalid token claims")
-			return
-		}
-
-		// Return the single user ID in the response
-		JSONResponse(w, http.StatusOK, map[string]int{"user_id": userID})
+// GetUserID extracts the user ID from the Authorization header.
+func GetUserID(r *http.Request) (int, error) {
+	tokenString := r.Header.Get("Authorization")
+	if tokenString == "" {
+		return 0, errors.New("missing Authorization header")
 	}
+
+	token, err := ValidateToken(tokenString)
+	if err != nil {
+		return 0, errors.New("invalid token: " + err.Error())
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		if uid, ok := claims["user_id"].(float64); ok {
+			return int(uid), nil
+		}
+		return 0, errors.New("user_id not found in token")
+	}
+
+	return 0, errors.New("invalid token claims")
 }
 
 func GetUsers(db *sqlx.DB) http.HandlerFunc {
