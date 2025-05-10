@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"go-backend/internal/models"
+	"go-backend/pkg/util"
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
@@ -58,17 +59,28 @@ func GetMessagesHandler(db *sqlx.DB) http.HandlerFunc {
 			return
 		}
 
+		pagination := util.GetPagination(r)
+
 		var messages []models.Message
 		err = db.Select(&messages, `
 			SELECT * FROM messages 
 			WHERE receiver_id = $1 AND sender_id = $2
-		`, receiverID, senderID)
+			ORDER BY sent_at DESC
+			LIMIT $3 OFFSET $4
+		`, receiverID, senderID, pagination.Limit, pagination.Offset)
 		if err != nil {
 			http.Error(w, "Failed to retrieve messages", http.StatusInternalServerError)
 			return
 		}
 
+		response := map[string]interface{}{
+			"messages":   messages,
+			"pagination": pagination,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(messages)
+		json.NewEncoder(w).Encode(response)
 	}
 }
