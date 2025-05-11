@@ -6,8 +6,11 @@ import (
 )
 
 type Pagination struct {
-	Limit  int
-	Offset int
+	Limit       int `json:"limit"`
+	Offset      int `json:"offset"`
+	CurrentPage int `json:"current_page"`
+	TotalItems  int `json:"total_items"`
+	TotalPages  int `json:"total_pages"`
 }
 
 func GetPagination(r *http.Request) Pagination {
@@ -29,8 +32,11 @@ func GetPagination(r *http.Request) Pagination {
 		}
 	}
 
+	currentPage := (offset / limit) + 1
+
 	return Pagination{
-		Limit:  limit,
-		Offset: offset,
+		Limit:       limit,
+		Offset:      offset,
+		CurrentPage: currentPage,
 	}
 }

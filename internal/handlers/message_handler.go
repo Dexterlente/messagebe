@@ -48,7 +48,6 @@ func SendMessageHandler(db *sqlx.DB) http.HandlerFunc {
 
 func GetMessagesHandler(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		senderID, err := GetUserID(r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
@@ -63,6 +62,16 @@ func GetMessagesHandler(db *sqlx.DB) http.HandlerFunc {
 
 		pagination := util.GetPagination(r)
 
+		var totalCount int
+		err = db.Get(&totalCount, `
+			SELECT COUNT(*) FROM messages 
+			WHERE receiver_id = $1 AND sender_id = $2
+		`, receiverID, senderID)
+		if err != nil {
+			http.Error(w, "Failed to count messages", http.StatusInternalServerError)
+			return
+		}
+
 		var messages []models.Message
 		err = db.Select(&messages, `
 			SELECT * FROM messages 
@@ -75,13 +84,17 @@ func GetMessagesHandler(db *sqlx.DB) http.HandlerFunc {
 			return
 		}
 
+		pagination.TotalItems = totalCount
+		if pagination.Limit > 0 {
+			pagination.TotalPages = (totalCount + pagination.Limit - 1) / pagination.Limit
+		}
+
 		response := map[string]interface{}{
 			"messages":   messages,
 			"pagination": pagination,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(response)
 	}
