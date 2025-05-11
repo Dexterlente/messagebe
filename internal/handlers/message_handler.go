@@ -11,29 +11,31 @@ import (
 
 func SendMessageHandler(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var msg models.Message
-		if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
+		var req models.SendMessageRequest
+
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "Invalid request payload", http.StatusBadRequest)
 			return
 		}
 
-		// Check if both sender and receiver exist
-		var senderExists, receiverExists bool
-		err := db.Get(&senderExists, "SELECT EXISTS (SELECT 1 FROM users WHERE id = $1)", msg.SenderID)
-		if err != nil || !senderExists {
-			http.Error(w, "Sender not found", http.StatusNotFound)
+		senderID, err := GetUserID(r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 
-		err = db.Get(&receiverExists, "SELECT EXISTS (SELECT 1 FROM users WHERE id = $1)", msg.ReceiverID)
+		var receiverExists bool
+		err = db.Get(&receiverExists, "SELECT EXISTS (SELECT 1 FROM users WHERE id = $1)", req.ReceiverID)
 		if err != nil || !receiverExists {
 			http.Error(w, "Receiver not found", http.StatusNotFound)
 			return
 		}
 
-		// Insert the message into the database
-		_, err = db.Exec("INSERT INTO messages (sender_id, receiver_id, content) VALUES ($1, $2, $3)",
-			msg.SenderID, msg.ReceiverID, msg.Content)
+		_, err = db.Exec(`
+			INSERT INTO messages (sender_id, receiver_id, content) 
+			VALUES ($1, $2, $3)`,
+			senderID, req.ReceiverID, req.Content,
+		)
 		if err != nil {
 			http.Error(w, "Failed to send message", http.StatusInternalServerError)
 			return

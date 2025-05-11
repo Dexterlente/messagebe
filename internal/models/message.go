@@ -12,3 +12,8 @@ type Message struct {
 	Content        string    `db:"content"`
 	SentAt         time.Time `db:"sent_at"`
 }
+
+type SendMessageRequest struct {
+	ReceiverID int    `json:"receiver_id"`
+	Content    string `json:"content"`
+}
