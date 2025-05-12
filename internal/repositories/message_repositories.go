@@ -89,3 +89,31 @@ func GetMessagesRepository(db *sqlx.DB, senderID, receiverID, limit, offset int)
 
 	return messages, totalCount, conversationID, nil
 }
+
+func GetConversationsRepository(db *sqlx.DB, userID, limit, offset int) ([]models.ConversationInfo, error) {
+	var conversations []models.ConversationInfo
+	err := db.Select(&conversations, `
+		SELECT c.id AS conversation_id,
+			CASE 
+				WHEN c.user1_id = $1 THEN c.user2_id 
+				ELSE c.user1_id 
+			END AS user_id,
+			m.sent_at AS last_message_at,
+			LEFT(m.content, 20) AS last_message_content
+		FROM conversations c
+		LEFT JOIN LATERAL (
+			SELECT content, sent_at
+			FROM messages
+			WHERE conversation_id = c.id
+			ORDER BY sent_at DESC
+			LIMIT 1
+		) m ON true
+		WHERE c.user1_id = $1 OR c.user2_id = $1
+		ORDER BY m.sent_at DESC NULLS LAST
+		LIMIT $2 OFFSET $3;
+	`, userID, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	return conversations, nil
+}

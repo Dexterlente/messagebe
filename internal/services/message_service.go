@@ -22,3 +22,7 @@ func FetchMessagesService(db *sqlx.DB, senderID, receiverID, limit, offset int) 
 	}
 	return messages, totalCount, nil
 }
+
+func GetConversationsService(db *sqlx.DB, userID, limit, offset int) ([]models.ConversationInfo, error) {
+	return repositories.GetConversationsRepository(db, userID, limit, offset)
+}
