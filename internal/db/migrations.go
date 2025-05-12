@@ -12,6 +12,7 @@ func runMigrations(db *sqlx.DB) error {
 	migrations := []func(*sqlx.DB) error{
 		migrateUsers,
 		migrateMessages,
+		migrateConversations,
 		// Add more migrations here
 	}
 
@@ -90,7 +91,7 @@ func migrateMessages(db *sqlx.DB) error {
 	_, err = db.Exec(`
         CREATE TABLE  messages (
             id SERIAL PRIMARY KEY,
-            conversation_id INT NOT NULL,
+            conversation_id INT REFERENCES conversations(id) ON DELETE CASCADE,
             sender_id INT REFERENCES users(id) ON DELETE CASCADE,
             receiver_id INT REFERENCES users(id) ON DELETE CASCADE,
             content TEXT NOT NULL,
@@ -102,5 +103,36 @@ func migrateMessages(db *sqlx.DB) error {
 	}
 
 	log.Println("Messages table created successfully!")
+	return nil
+}
+
+func migrateConversations(db *sqlx.DB) error {
+	// Check if the table already exists
+	exists, err := tableExists(db, "conversations")
+	if err != nil {
+		return fmt.Errorf("failed to check if conversations table exists: %v", err)
+	}
+
+	// If the table exists, print a message and return
+	if exists {
+		log.Println("conversations table already exists!")
+		return nil
+	}
+
+	// Create the table if it doesn't exist
+	_, err = db.Exec(`
+        CREATE TABLE conversations (
+			id SERIAL PRIMARY KEY,
+			user1_id INT NOT NULL,
+			user2_id INT NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			UNIQUE(user1_id, user2_id)
+		)
+    `)
+	if err != nil {
+		return fmt.Errorf("failed to create conversations table: %v", err)
+	}
+
+	log.Println("Conversations table created successfully!")
 	return nil
 }
