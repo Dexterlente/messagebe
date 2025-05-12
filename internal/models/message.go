@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -22,4 +23,11 @@ type Conversation struct {
 	ID      int `db:"id" json:"id"`
 	User1ID int `db:"user1_id" json:"user1_id"`
 	User2ID int `db:"user2_id" json:"user2_id"`
+}
+
+type ConversationInfo struct {
+	ConversationID     int          `db:"conversation_id" json:"conversation_id"`
+	UserID             int          `db:"user_id" json:"user_id"`
+	LastMessageAt      sql.NullTime `db:"last_message_at" json:"last_message_at"`
+	LastMessageContent string       `db:"last_message_content" json:"last_message_content"`
 }

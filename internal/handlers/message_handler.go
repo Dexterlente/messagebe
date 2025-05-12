@@ -6,6 +6,7 @@ import (
 	"go-backend/pkg/util"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -154,5 +155,68 @@ func GetMessagesHandler(db *sqlx.DB) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(response)
+	}
+}
+
+func GetConversationsHandler(db *sqlx.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get the user ID from the request (this should be from a logged-in user, e.g., using a token)
+		userID, err := GetUserID(r)
+		if err != nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// Define a struct to hold the conversation data
+		var conversations []models.ConversationInfo
+
+		// Query the conversations with the most recent message timestamp and the latest message content (limited to 20 characters)
+		err = db.Select(&conversations, `
+			SELECT c.id AS conversation_id, 
+				   CASE 
+					   WHEN c.user1_id = $1 THEN c.user2_id 
+					   ELSE c.user1_id 
+				   END AS user_id,
+				   MAX(m.sent_at) AS last_message_at,
+				   LEFT(MAX(m.content), 30) AS last_message_content
+			FROM conversations c
+			LEFT JOIN messages m ON m.conversation_id = c.id
+			WHERE c.user1_id = $1 OR c.user2_id = $1
+			GROUP BY c.id, c.user1_id, c.user2_id
+			ORDER BY last_message_at DESC
+		`, userID)
+
+		if err != nil {
+			log.Printf("Error fetching conversations: %v", err)
+			http.Error(w, "Error fetching conversations", http.StatusInternalServerError)
+			return
+		}
+
+		// Prepare the response with conversation ids, user ids, latest message timestamp, and content
+		response := []map[string]interface{}{}
+		for _, conversation := range conversations {
+			// Handle the case when last_message_at is NULL
+			lastMessageAt := ""
+			if conversation.LastMessageAt.Valid {
+				lastMessageAt = conversation.LastMessageAt.Time.Format(time.RFC3339)
+			}
+
+			// Prepare the conversation item with the latest message content (limited to 20 characters)
+			item := map[string]interface{}{
+				"conversation_id":      conversation.ConversationID,
+				"user_id":              conversation.UserID,
+				"last_message_at":      lastMessageAt,
+				"last_message_content": conversation.LastMessageContent,
+			}
+			response = append(response, item)
+		}
+
+		// Send the response in JSON format
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			log.Printf("Error encoding response: %v", err)
+			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		}
 	}
 }

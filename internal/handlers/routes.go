@@ -17,4 +17,5 @@ func RegisterRoutes(db *sqlx.DB) {
 	//message_handler.go
 	http.HandleFunc("/messages", GetMessagesHandler(db))
 	http.HandleFunc("/send-message", SendMessageHandler(db))
+	http.HandleFunc("/conversations", GetConversationsHandler(db))
 }
