@@ -146,7 +146,7 @@ func GetMessagesHandler(db *sqlx.DB) http.HandlerFunc {
 		}
 
 		// Prepare the response with messages and pagination details
-		response := map[string]interface{}{
+		response := map[string]any{
 			"messages":   messages,
 			"pagination": pagination,
 		}
@@ -166,7 +166,7 @@ func GetConversationsHandler(db *sqlx.DB) http.HandlerFunc {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
-
+		pagination := util.GetPagination(r)
 		// Define a struct to hold the conversation data
 		var conversations []models.ConversationInfo
 
@@ -184,7 +184,8 @@ func GetConversationsHandler(db *sqlx.DB) http.HandlerFunc {
 			WHERE c.user1_id = $1 OR c.user2_id = $1
 			GROUP BY c.id, c.user1_id, c.user2_id
 			ORDER BY last_message_at DESC
-		`, userID)
+			LIMIT $2 OFFSET $3
+		`, userID, pagination.Limit, pagination.Offset)
 
 		if err != nil {
 			log.Printf("Error fetching conversations: %v", err)
@@ -192,8 +193,9 @@ func GetConversationsHandler(db *sqlx.DB) http.HandlerFunc {
 			return
 		}
 
+		totalCount := len(conversations)
 		// Prepare the response with conversation ids, user ids, latest message timestamp, and content
-		response := []map[string]interface{}{}
+		response := []map[string]any{}
 		for _, conversation := range conversations {
 			// Handle the case when last_message_at is NULL
 			lastMessageAt := ""
@@ -202,7 +204,7 @@ func GetConversationsHandler(db *sqlx.DB) http.HandlerFunc {
 			}
 
 			// Prepare the conversation item with the latest message content (limited to 20 characters)
-			item := map[string]interface{}{
+			item := map[string]any{
 				"conversation_id":      conversation.ConversationID,
 				"user_id":              conversation.UserID,
 				"last_message_at":      lastMessageAt,
@@ -210,11 +212,20 @@ func GetConversationsHandler(db *sqlx.DB) http.HandlerFunc {
 			}
 			response = append(response, item)
 		}
+		pagination.TotalItems = totalCount
+		if pagination.Limit > 0 {
+			pagination.TotalPages = (totalCount + pagination.Limit - 1) / pagination.Limit
+		}
+
+		finalResponse := map[string]any{
+			"conversations": response,
+			"pagination":    pagination,
+		}
 
 		// Send the response in JSON format
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(response); err != nil {
+		if err := json.NewEncoder(w).Encode(finalResponse); err != nil {
 			log.Printf("Error encoding response: %v", err)
 			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		}
