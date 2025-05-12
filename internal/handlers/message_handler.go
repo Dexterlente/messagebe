@@ -49,14 +49,16 @@ func SendMessageHandler(db *sqlx.DB) http.HandlerFunc {
 
 func GetMessagesHandler(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Get sender ID from the request
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
+		}
 		senderID, err := GetUserID(r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 
-		// Get receiver ID from the query parameter
 		receiverIDStr := r.URL.Query().Get("receiver_id")
 		if receiverIDStr == "" {
 			http.Error(w, "receiver_id is required", http.StatusBadRequest)
@@ -69,10 +71,7 @@ func GetMessagesHandler(db *sqlx.DB) http.HandlerFunc {
 			return
 		}
 
-		// Fetch pagination details
 		pagination := util.GetPagination(r)
-
-		// Fetch messages using the service
 		messages, totalCount, err := services.FetchMessagesService(db, senderID, receiverID, pagination.Limit, pagination.Offset)
 		if err != nil {
 			log.Printf("Error retrieving messages: %v", err)
@@ -80,19 +79,16 @@ func GetMessagesHandler(db *sqlx.DB) http.HandlerFunc {
 			return
 		}
 
-		// Update pagination info
 		pagination.TotalItems = totalCount
 		if pagination.Limit > 0 {
 			pagination.TotalPages = (totalCount + pagination.Limit - 1) / pagination.Limit
 		}
 
-		// Prepare the response with messages and pagination details
 		response := map[string]any{
 			"messages":   messages,
 			"pagination": pagination,
 		}
 
-		// Send the response
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(response)
