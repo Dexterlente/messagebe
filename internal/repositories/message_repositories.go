@@ -12,35 +12,38 @@ func SendMessageRepository(db *sqlx.DB) *MessageRepository {
 	return &MessageRepository{DB: db}
 }
 
-func (r *MessageRepository) ReceiverExists(receiverID int) (bool, error) {
+func (r *MessageRepository) SendMessage(senderID, receiverID int, content string) error {
+	// Check if receiver exists
 	var exists bool
 	err := r.DB.Get(&exists, `SELECT EXISTS (SELECT 1 FROM users WHERE id = $1)`, receiverID)
-	return exists, err
-}
+	if err != nil || !exists {
+		return err
+	}
 
-func (r *MessageRepository) GetConversationID(user1, user2 int) (int, error) {
-	var id int
-	err := r.DB.Get(&id, `
+	// Get or create conversation
+	var convoID int
+	err = r.DB.Get(&convoID, `
 		SELECT id FROM conversations 
 		WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)
-	`, user1, user2)
-	return id, err
-}
+	`, senderID, receiverID)
 
-func (r *MessageRepository) CreateConversation(user1, user2 int) (int, error) {
-	var id int
-	err := r.DB.Get(&id, `
-		INSERT INTO conversations (user1_id, user2_id)
-		VALUES ($1, $2)
-		RETURNING id
-	`, user1, user2)
-	return id, err
-}
+	if err != nil {
+		// If no conversation exists, create one
+		err = r.DB.Get(&convoID, `
+			INSERT INTO conversations (user1_id, user2_id)
+			VALUES ($1, $2)
+			RETURNING id
+		`, senderID, receiverID)
+		if err != nil {
+			return err
+		}
+	}
 
-func (r *MessageRepository) InsertMessage(convoID, senderID, receiverID int, content string) error {
-	_, err := r.DB.Exec(`
+	// Insert message
+	_, err = r.DB.Exec(`
 		INSERT INTO messages (conversation_id, sender_id, receiver_id, content)
 		VALUES ($1, $2, $3, $4)
 	`, convoID, senderID, receiverID, content)
+
 	return err
 }
