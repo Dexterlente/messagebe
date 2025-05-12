@@ -3,6 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"go-backend/internal/models"
+	"go-backend/internal/repositories"
+	"go-backend/internal/services"
 	"go-backend/pkg/util"
 	"log"
 	"net/http"
@@ -13,61 +15,27 @@ import (
 
 func SendMessageHandler(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
+		}
 		var req models.SendMessageRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			log.Printf("Failed to decode JSON: %v", err)
-			http.Error(w, "Invalid request payload", http.StatusBadRequest)
+			log.Printf("Invalid request payload: %v", err)
+			http.Error(w, "Invalid request", http.StatusBadRequest)
 			return
 		}
 
-		// Log the request payload
-		log.Printf("Received message request: %v", req)
-
-		// Get sender ID
 		senderID, err := GetUserID(r)
 		if err != nil {
-			log.Printf("Failed to get sender ID: %v", err)
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		// Check if receiver exists
-		var receiverExists bool
-		err = db.Get(&receiverExists, "SELECT EXISTS (SELECT 1 FROM users WHERE id = $1)", req.ReceiverID)
-		if err != nil || !receiverExists {
-			log.Printf("Receiver not found: %v", req.ReceiverID)
-			http.Error(w, "Receiver not found", http.StatusNotFound)
-			return
-		}
+		messageRepo := repositories.SendMessageRepository(db)
+		messageService := services.SendMessageService(messageRepo)
 
-		// Get or create conversation ID
-		var conversationID int
-		err = db.Get(&conversationID, `
-            SELECT id FROM conversations 
-            WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)
-        `, senderID, req.ReceiverID)
-
-		if err != nil {
-			// If conversation not found, create new conversation
-			err = db.Get(&conversationID, `
-                INSERT INTO conversations (user1_id, user2_id)
-                VALUES ($1, $2)
-                RETURNING id
-            `, senderID, req.ReceiverID)
-			if err != nil {
-				log.Printf("Failed to create conversation: %v", err)
-				http.Error(w, "Failed to create conversation", http.StatusInternalServerError)
-				return
-			}
-		}
-
-		// Insert the message into the database
-		_, err = db.Exec(`
-			INSERT INTO messages (conversation_id, sender_id, receiver_id, content)
-			VALUES ($1, $2, $3, $4)
-		`, conversationID, senderID, req.ReceiverID, req.Content)
-
-		if err != nil {
+		if err := messageService.SendMessage(senderID, req.ReceiverID, req.Content); err != nil {
 			log.Printf("Failed to send message: %v", err)
 			http.Error(w, "Failed to send message", http.StatusInternalServerError)
 			return
