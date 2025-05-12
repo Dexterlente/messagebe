@@ -15,10 +15,10 @@ type Pagination struct {
 
 func GetPagination(r *http.Request) Pagination {
 	const defaultLimit = 10
-	const defaultOffset = 0
+	const defaultPage = 1
 
 	limit := defaultLimit
-	offset := defaultOffset
+	page := defaultPage
 
 	if l := r.URL.Query().Get("limit"); l != "" {
 		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 {
@@ -26,17 +26,17 @@ func GetPagination(r *http.Request) Pagination {
 		}
 	}
 
-	if o := r.URL.Query().Get("offset"); o != "" {
-		if parsed, err := strconv.Atoi(o); err == nil && parsed >= 0 {
-			offset = parsed
+	if p := r.URL.Query().Get("page"); p != "" {
+		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
+			page = parsed
 		}
 	}
 
-	currentPage := (offset / limit) + 1
+	offset := (page - 1) * limit
 
 	return Pagination{
 		Limit:       limit,
 		Offset:      offset,
-		CurrentPage: currentPage,
+		CurrentPage: page,
 	}
 }
