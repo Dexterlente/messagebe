@@ -140,19 +140,24 @@ func GetConversationsHandler(db *sqlx.DB) http.HandlerFunc {
 
 		// Query the conversations with the most recent message timestamp and the latest message content (limited to 20 characters)
 		err = db.Select(&conversations, `
-			SELECT c.id AS conversation_id, 
-				   CASE 
-					   WHEN c.user1_id = $1 THEN c.user2_id 
-					   ELSE c.user1_id 
-				   END AS user_id,
-				   MAX(m.sent_at) AS last_message_at,
-				   LEFT(MAX(m.content), 30) AS last_message_content
+			SELECT c.id AS conversation_id,
+				CASE 
+					WHEN c.user1_id = $1 THEN c.user2_id 
+					ELSE c.user1_id 
+				END AS user_id,
+				m.sent_at AS last_message_at,
+				LEFT(m.content, 20) AS last_message_content
 			FROM conversations c
-			LEFT JOIN messages m ON m.conversation_id = c.id
+			LEFT JOIN LATERAL (
+				SELECT content, sent_at
+				FROM messages
+				WHERE conversation_id = c.id
+				ORDER BY sent_at DESC
+				LIMIT 1
+			) m ON true
 			WHERE c.user1_id = $1 OR c.user2_id = $1
-			GROUP BY c.id, c.user1_id, c.user2_id
-			ORDER BY last_message_at DESC
-			LIMIT $2 OFFSET $3
+			ORDER BY m.sent_at DESC NULLS LAST
+			LIMIT $2 OFFSET $3;
 		`, userID, pagination.Limit, pagination.Offset)
 
 		if err != nil {
