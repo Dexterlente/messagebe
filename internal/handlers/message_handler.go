@@ -8,6 +8,7 @@ import (
 	"go-backend/pkg/util"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -56,51 +57,23 @@ func GetMessagesHandler(db *sqlx.DB) http.HandlerFunc {
 		}
 
 		// Get receiver ID from the query parameter
-		receiverID := r.URL.Query().Get("receiver_id")
-		if receiverID == "" {
+		receiverIDStr := r.URL.Query().Get("receiver_id")
+		if receiverIDStr == "" {
 			http.Error(w, "receiver_id is required", http.StatusBadRequest)
+			return
+		}
+
+		receiverID, err := strconv.Atoi(receiverIDStr)
+		if err != nil {
+			http.Error(w, "invalid receiver_id", http.StatusBadRequest)
 			return
 		}
 
 		// Fetch pagination details
 		pagination := util.GetPagination(r)
 
-		// Check if a conversation exists between the sender and receiver
-		var conversationID int
-		err = db.Get(&conversationID, `
-			SELECT id 
-			FROM conversations 
-			WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)
-		`, senderID, receiverID)
-
-		if err != nil {
-			log.Printf("Error fetching conversation: %v", err)
-			http.Error(w, "Conversation not found", http.StatusNotFound)
-			return
-		}
-
-		// Fetch total message count for pagination
-		var totalCount int
-		err = db.Get(&totalCount, `
-			SELECT COUNT(*) 
-			FROM messages 
-			WHERE conversation_id = $1
-		`, conversationID)
-		if err != nil {
-			log.Printf("Error counting messages: %v", err)
-			http.Error(w, "Failed to count messages", http.StatusInternalServerError)
-			return
-		}
-
-		// Retrieve the messages based on the conversation ID
-		var messages []models.Message
-		err = db.Select(&messages, `
-			SELECT id, conversation_id, sender_id, receiver_id, content, sent_at
-			FROM messages 
-			WHERE conversation_id = $1
-			ORDER BY sent_at DESC
-			LIMIT $2 OFFSET $3
-		`, conversationID, pagination.Limit, pagination.Offset)
+		// Fetch messages using the service
+		messages, totalCount, err := services.FetchMessagesService(db, senderID, receiverID, pagination.Limit, pagination.Offset)
 		if err != nil {
 			log.Printf("Error retrieving messages: %v", err)
 			http.Error(w, "Failed to retrieve messages", http.StatusInternalServerError)
