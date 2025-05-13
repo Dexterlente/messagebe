@@ -7,28 +7,29 @@ import (
 	"net/http"
 	"os"
 
+	_ "go-backend/docs"
+
 	"github.com/joho/godotenv"
 )
 
 func main() {
-    err := godotenv.Load()
-    if err != nil {
-        log.Println("No .env file found")
-    }
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found")
+	}
 
 	port := os.Getenv("PORT")
-    if port == "" {
-        port = "5050" 
-    }
-	
-    db, err := db.New()
-    if err != nil {
-        log.Fatal(err)
-    }
+	if port == "" {
+		port = "5050"
+	}
 
-    handlers.RegisterRoutes(db)
-    
+	db, err := db.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	handlers.RegisterRoutes(db)
 
 	log.Printf("Server is running on port %s\n", port)
-    log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

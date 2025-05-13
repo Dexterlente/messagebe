@@ -40,6 +40,16 @@ func GetUserID(r *http.Request) (int, error) {
 	return 0, errors.New("invalid token claims")
 }
 
+// GetUsers handles GET /users
+// @Summary Get all users
+// @Description Returns a list of all users (JWT-protected)
+// @Tags users
+// @Produce json
+// @Success 200 {array} models.User
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "Internal Server Error"
+// @Security ApiKeyAuth
+// @Router /users [get]
 func GetUsers(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
