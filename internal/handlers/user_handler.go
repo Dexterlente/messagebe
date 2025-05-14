@@ -45,10 +45,10 @@ func GetUserID(r *http.Request) (int, error) {
 // @Description Returns a list of all users (JWT-protected)
 // @Tags users
 // @Produce json
-// @Success 200 {array} models.User
+// @Security ApiKeyAuth
+// @Success 200 {array} models.UserList
 // @Failure 401 {object} models.ErrorResponse "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse "Internal Server Error"
-// @Security ApiKeyAuth
 // @Router /users [get]
 func GetUsers(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +59,7 @@ func GetUsers(db *sqlx.DB) http.HandlerFunc {
 			return
 		}
 
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
@@ -86,9 +86,8 @@ func GetUsers(db *sqlx.DB) http.HandlerFunc {
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Param        user  body      models.User  true  "User data"
+// @Param        user  body      models.CreateUserPayload  true  "User data"
 // @Success      201   {object}  models.CreateUserResponse  "Created user ID"
-// @Security ApiKeyAuth
 // @Router       /create-user [post]
 func CreateUser(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

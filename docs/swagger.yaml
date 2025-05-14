@@ -1,4 +1,17 @@
 definitions:
+  models.CreateUserPayload:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
   models.CreateUserResponse:
     properties:
       id:
@@ -8,10 +21,10 @@ definitions:
     type: object
   models.ErrorResponse:
     properties:
-      message:
+      error:
         type: string
     type: object
-  models.User:
+  models.UserList:
     properties:
       created_at:
         type: string
@@ -32,6 +45,9 @@ definitions:
     type: object
 info:
   contact: {}
+  description: This is a Messaging app backend.
+  title: Your API Title
+  version: "1.0"
 paths:
   /create-user:
     post:
@@ -45,7 +61,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/models.User'
+          $ref: '#/definitions/models.CreateUserPayload'
       produces:
       - application/json
       responses:
@@ -53,8 +69,6 @@ paths:
           description: Created user ID
           schema:
             $ref: '#/definitions/models.CreateUserResponse'
-      security:
-      - ApiKeyAuth: []
       summary: Create a new user
       tags:
       - users
@@ -68,7 +82,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.User'
+              $ref: '#/definitions/models.UserList'
             type: array
         "401":
           description: Unauthorized

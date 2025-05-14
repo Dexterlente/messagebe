@@ -1,5 +1,9 @@
 package main
 
+// @title Your API Title
+// @version 1.0
+// @description This is a Messaging app backend.
+
 import (
 	"go-backend/internal/db"
 	"go-backend/internal/handlers"

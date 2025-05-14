@@ -3,24 +3,33 @@ package models
 import (
 	"time"
 )
+
 type User struct {
-    ID        int       `db:"id" json:"id"`
-    FirstName string    `db:"first_name" json:"first_name"`
-    LastName  string    `db:"last_name" json:"last_name"`
-    Email     string    `db:"email" json:"email"`
-    UserName  string    `db:"username" json:"username"`
-    Password  string    `db:"password" json:"password"`
-    CreatedAt time.Time `db:"created_at" json:"created_at"`
-    UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+	ID        int       `db:"id" json:"id"`
+	FirstName string    `db:"first_name" json:"first_name"`
+	LastName  string    `db:"last_name" json:"last_name"`
+	Email     string    `db:"email" json:"email"`
+	UserName  string    `db:"username" json:"username"`
+	Password  string    `db:"password" json:"password"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 
 type ChangePasswordRequest struct {
-    UserID      int    `db:"id" json:"user_id"`
-    OldPassword string `json:"old_password"`
-    NewPassword string `json:"new_password"`
+	UserID      int    `db:"id" json:"user_id"`
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
 }
 
 type LoginRequest struct {
-    UserName string  `json:"username"`
-    Password string `json:"password"`
+	UserName string `json:"username"`
+	Password string `json:"password"`
+}
+
+type CreateUserPayload struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	UserName  string `json:"username"`
+	Password  string `json:"password"`
 }

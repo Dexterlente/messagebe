@@ -17,11 +17,6 @@ const docTemplate = `{
     "paths": {
         "/create-user": {
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Accepts a JSON payload to create a new user and returns the new user ID",
                 "consumes": [
                     "application/json"
@@ -40,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/models.CreateUserPayload"
                         }
                     }
                 ],
@@ -75,7 +70,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.User"
+                                "$ref": "#/definitions/models.UserList"
                             }
                         }
                     },
@@ -96,6 +91,26 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.CreateUserPayload": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "models.CreateUserResponse": {
             "type": "object",
             "properties": {
@@ -110,12 +125,12 @@ const docTemplate = `{
         "models.ErrorResponse": {
             "type": "object",
             "properties": {
-                "message": {
+                "error": {
                     "type": "string"
                 }
             }
         },
-        "models.User": {
+        "models.UserList": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -149,12 +164,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
+	Version:          "1.0",
 	Host:             "",
 	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "Your API Title",
+	Description:      "This is a Messaging app backend.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

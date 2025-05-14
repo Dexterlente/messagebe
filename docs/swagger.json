@@ -1,16 +1,14 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "This is a Messaging app backend.",
+        "title": "Your API Title",
+        "contact": {},
+        "version": "1.0"
     },
     "paths": {
         "/create-user": {
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Accepts a JSON payload to create a new user and returns the new user ID",
                 "consumes": [
                     "application/json"
@@ -29,7 +27,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/models.CreateUserPayload"
                         }
                     }
                 ],
@@ -64,7 +62,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.User"
+                                "$ref": "#/definitions/models.UserList"
                             }
                         }
                     },
@@ -85,6 +83,26 @@
         }
     },
     "definitions": {
+        "models.CreateUserPayload": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "models.CreateUserResponse": {
             "type": "object",
             "properties": {
@@ -99,12 +117,12 @@
         "models.ErrorResponse": {
             "type": "object",
             "properties": {
-                "message": {
+                "error": {
                     "type": "string"
                 }
             }
         },
-        "models.User": {
+        "models.UserList": {
             "type": "object",
             "properties": {
                 "created_at": {
