@@ -43,7 +43,7 @@ func GetUserID(r *http.Request) (int, error) {
 // GetUsers handles GET /users
 // @Summary Get all users
 // @Description Returns a list of all users (JWT-protected)
-// @Tags users
+// @Tags Users
 // @Produce json
 // @Security ApiKeyAuth
 // @Success 200 {array} models.UserList
@@ -84,7 +84,7 @@ func GetUsers(db *sqlx.DB) http.HandlerFunc {
 // CreateUser creates a new user.
 // @Summary      Create a new user
 // @Description  Accepts a JSON payload to create a new user and returns the new user ID
-// @Tags         users
+// @Tags         Users
 // @Accept       json
 // @Produce      json
 // @Param        user  body      models.CreateUserPayload  true  "User data"

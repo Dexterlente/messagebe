@@ -71,7 +71,7 @@ paths:
             $ref: '#/definitions/models.CreateUserResponse'
       summary: Create a new user
       tags:
-      - users
+      - Users
   /users:
     get:
       description: Returns a list of all users (JWT-protected)
@@ -96,7 +96,7 @@ paths:
       - ApiKeyAuth: []
       summary: Get all users
       tags:
-      - users
+      - Users
 securityDefinitions:
   ApiKeyAuth:
     description: 'Enter JWT token as: Bearer {token}'
