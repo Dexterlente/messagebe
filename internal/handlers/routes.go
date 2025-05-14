@@ -25,7 +25,15 @@ func withCORS(h http.HandlerFunc) http.HandlerFunc {
 
 func RegisterRoutes(db *sqlx.DB) {
 	// Swagger documentation
-	http.Handle("/swagger/", httpSwagger.WrapHandler)
+	http.Handle("/swagger/", httpSwagger.Handler(
+		httpSwagger.DocExpansion("list"),       // Collapse all sections
+		httpSwagger.DeepLinking(true),          // Enable URL deep linking
+		httpSwagger.PersistAuthorization(true), // Persist authorization header
+		httpSwagger.UIConfig(map[string]string{
+			"defaultModelsExpandDepth": "-1",
+		}), // Disable default models section
+	))
+
 	http.HandleFunc("/swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./docs/swagger.json")
 	})
