@@ -88,8 +88,6 @@ func GetUsers(db *sqlx.DB) http.HandlerFunc {
 // @Produce      json
 // @Param        user  body      models.User  true  "User data"
 // @Success      201   {object}  models.CreateUserResponse  "Created user ID"
-// @Failure 401 {object} models.ErrorResponse "Unauthorized"
-// @Failure 500 {object} models.ErrorResponse "Internal Server Error"
 // @Security ApiKeyAuth
 // @Router       /create-user [post]
 func CreateUser(db *sqlx.DB) http.HandlerFunc {
