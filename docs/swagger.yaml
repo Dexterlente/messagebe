@@ -26,6 +26,44 @@ definitions:
 info:
   contact: {}
 paths:
+  /user:
+    post:
+      consumes:
+      - application/json
+      description: Accepts a JSON payload to create a new user and returns the new
+        user ID
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new user
+      tags:
+      - users
   /users:
     get:
       description: Returns a list of all users (JWT-protected)

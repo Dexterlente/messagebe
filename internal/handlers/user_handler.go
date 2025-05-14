@@ -80,8 +80,24 @@ func GetUsers(db *sqlx.DB) http.HandlerFunc {
 	}
 }
 
+// CreateUser creates a new user.
+// @Summary      Create a new user
+// @Description  Accepts a JSON payload to create a new user and returns the new user ID
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        user  body      models.User  true  "User data"
+// @Success      201   {object}  map[string]interface{}  "Created user ID"
+// @Failure      400   {object}  map[string]string       "Bad request"
+// @Failure      500   {object}  map[string]string       "Internal server error"
+// @Security ApiKeyAuth
+// @Router       /user [post]
 func CreateUser(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
+		}
 		var user models.User
 		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 			ErrorResponse(w, http.StatusBadRequest, err.Error())
