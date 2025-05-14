@@ -1,4 +1,11 @@
 definitions:
+  models.CreateUserResponse:
+    properties:
+      id:
+        type: integer
+      success:
+        type: boolean
+    type: object
   models.ErrorResponse:
     properties:
       message:
@@ -26,7 +33,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /user:
+  /create-user:
     post:
       consumes:
       - application/json
@@ -45,20 +52,15 @@ paths:
         "201":
           description: Created user ID
           schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad request
+            $ref: '#/definitions/models.CreateUserResponse'
+        "401":
+          description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
-          description: Internal server error
+          description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/models.ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: Create a new user
