@@ -159,6 +159,14 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "description": "Enter JWT token as: Bearer {token}",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
     }
 }`
 
@@ -168,7 +176,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "Your API Title",
+	Title:            "Messenger",
 	Description:      "This is a Messaging app backend.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

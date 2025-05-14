@@ -46,7 +46,7 @@ definitions:
 info:
   contact: {}
   description: This is a Messaging app backend.
-  title: Your API Title
+  title: Messenger
   version: "1.0"
 paths:
   /create-user:
@@ -97,4 +97,10 @@ paths:
       summary: Get all users
       tags:
       - users
+securityDefinitions:
+  ApiKeyAuth:
+    description: 'Enter JWT token as: Bearer {token}'
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

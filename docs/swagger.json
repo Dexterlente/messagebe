@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "description": "This is a Messaging app backend.",
-        "title": "Your API Title",
+        "title": "Messenger",
         "contact": {},
         "version": "1.0"
     },
@@ -150,6 +150,14 @@
                     "type": "string"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "description": "Enter JWT token as: Bearer {token}",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }

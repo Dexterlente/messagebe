@@ -4,6 +4,7 @@ package handlers
 // @in header
 // @name Authorization
 // @description Enter JWT token as: Bearer {token}
+
 import (
 	"net/http"
 
