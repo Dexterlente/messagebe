@@ -1,8 +1,13 @@
-package main
-
 // @title Messenger
 // @version 1.0
 // @description This is a Messaging app backend.
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+// @description Enter JWT token as: Bearer {token}
+
+package main
 
 import (
 	"go-backend/internal/db"

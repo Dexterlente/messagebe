@@ -1,10 +1,5 @@
 package handlers
 
-// @securityDefinitions.apikey ApiKeyAuth
-// @in header
-// @name Authorization
-// @description Enter JWT token as: Bearer {token}
-
 import (
 	"net/http"
 
@@ -32,7 +27,7 @@ func RegisterRoutes(db *sqlx.DB) {
 	// Swagger documentation
 	http.Handle("/swagger/", httpSwagger.WrapHandler)
 	http.HandleFunc("/swagger/doc.json", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./docs/swagger.json") // Adjust path if needed
+		http.ServeFile(w, r, "./docs/swagger.json")
 	})
 
 	// user_handler.go

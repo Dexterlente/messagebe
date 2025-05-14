@@ -7,16 +7,16 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func GetUsers(db *sqlx.DB) ([]models.User, error) {
-    return repositories.GetUsers(db)
+func GetUsers(db *sqlx.DB) ([]models.UserResponse, error) {
+	return repositories.GetUsers(db)
 }
 
 func CreateUser(db *sqlx.DB, user *models.User) (int, error) {
-    return repositories.CreateUser(db, user)
+	return repositories.CreateUser(db, user)
 }
 
 func ChangePassword(db *sqlx.DB, req *models.ChangePasswordRequest) error {
-    return repositories.ChangePassword(db, req)
+	return repositories.ChangePassword(db, req)
 }
 
 func GetUserByUsername(db *sqlx.DB, username string) (*models.User, error) {
