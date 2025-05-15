@@ -1,4 +1,18 @@
 definitions:
+  models.ChangePasswordRequest:
+    properties:
+      new_password:
+        type: string
+      old_password:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.ChangePasswordResponse:
+    properties:
+      message:
+        type: string
+    type: object
   models.CreateUserPayload:
     properties:
       email:
@@ -49,6 +63,44 @@ info:
   title: Messenger
   version: "1.0"
 paths:
+  /change-password:
+    post:
+      consumes:
+      - application/json
+      description: Accepts a JSON payload to change the user's password
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password changed successfully
+          schema:
+            $ref: '#/definitions/models.ChangePasswordResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Change user password
+      tags:
+      - Users
   /create-user:
     post:
       consumes:

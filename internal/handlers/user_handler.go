@@ -9,6 +9,7 @@ import (
 	"go-backend/internal/services"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -115,8 +116,25 @@ func CreateUser(db *sqlx.DB) http.HandlerFunc {
 	}
 }
 
+// ChangePasswordHandlerFunc handles password change requests.
+// @Summary      Change user password
+// @Description  Accepts a JSON payload to change the user's password
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Param        user  body      models.ChangePasswordRequest  true  "User data"
+// @Success      200   {object}  models.ChangePasswordResponse  "Password changed successfully"
+// @Failure      400   {object}  models.ErrorResponse  "Bad Request"
+// @Failure      401   {object}  models.ErrorResponse  "Unauthorized"
+// @Failure      404   {object}  models.ErrorResponse  "User not found"
+// @Failure      500   {object}  models.ErrorResponse  "Internal Server Error"
+// @Router       /change-password [post]
 func ChangePasswordHandlerFunc(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
+		}
 		var req models.ChangePasswordRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -175,7 +193,7 @@ func LoginHandlerFunc(db *sqlx.DB) http.HandlerFunc {
 			return
 		}
 
-		JSONResponse(w, http.StatusOK, map[string]string{"token": t})
+		JSONResponse(w, http.StatusOK, map[string]string{"token": t, "id": strconv.Itoa(user.ID)})
 	}
 }
 
