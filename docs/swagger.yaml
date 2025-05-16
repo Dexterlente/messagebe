@@ -13,6 +13,16 @@ definitions:
       message:
         type: string
     type: object
+  models.Claims:
+    properties:
+      exp:
+        description: UNIX timestamp as float64
+        type: number
+      user_id:
+        type: integer
+      username:
+        type: string
+    type: object
   models.CreateUserPayload:
     properties:
       email:
@@ -36,6 +46,27 @@ definitions:
   models.ErrorResponse:
     properties:
       error:
+        type: string
+    type: object
+  models.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  models.LoginResponse:
+    properties:
+      id:
+        type: integer
+      token:
+        type: string
+    type: object
+  models.TokenValidationResponse:
+    properties:
+      claims:
+        $ref: '#/definitions/models.Claims'
+      message:
         type: string
     type: object
   models.UserList:
@@ -124,6 +155,40 @@ paths:
       summary: Create a new user
       tags:
       - Users
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Accepts a JSON payload to log in the user and returns a JWT token
+      parameters:
+      - description: User credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: JWT token and user ID
+          schema:
+            $ref: '#/definitions/models.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: User login
+      tags:
+      - Users
   /users:
     get:
       description: Returns a list of all users (JWT-protected)
@@ -147,6 +212,42 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get all users
+      tags:
+      - Users
+  /validate-token:
+    get:
+      consumes:
+      - application/json
+      description: Validates the JWT token and checks its expiration
+      parameters:
+      - description: JWT token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token is valid
+          schema:
+            $ref: '#/definitions/models.TokenValidationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - Bearer: []
+      summary: Validate JWT token
       tags:
       - Users
 securityDefinitions:

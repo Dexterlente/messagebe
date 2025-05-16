@@ -161,6 +161,18 @@ func ChangePasswordHandlerFunc(db *sqlx.DB) http.HandlerFunc {
 	}
 }
 
+// LoginHandlerFunc handles user login requests.
+// @Summary      User login
+// @Description  Accepts a JSON payload to log in the user and returns a JWT token
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Param        user  body      models.LoginRequest  true  "User credentials"
+// @Success      200   {object}  models.LoginResponse  "JWT token and user ID"
+// @Failure      400   {object}  models.ErrorResponse  "Bad Request"
+// @Failure      401   {object}  models.ErrorResponse  "Unauthorized"
+// @Failure      500   {object}  models.ErrorResponse  "Internal Server Error"
+// @Router       /login [post]
 func LoginHandlerFunc(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req models.LoginRequest
@@ -197,6 +209,20 @@ func LoginHandlerFunc(db *sqlx.DB) http.HandlerFunc {
 	}
 }
 
+// ValidateToken validates the JWT token and checks its expiration.
+// @Summary      Validate JWT token
+// @Description  Validates the JWT token and checks its expiration
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Param        token  header      string  true  "JWT token"
+// @Success      200    {object}   models.TokenValidationResponse  "Token is valid"
+// @Failure      401    {object}   models.ErrorResponse  "Unauthorized"
+// @Failure      400    {object}   models.ErrorResponse  "Bad Request"
+// @Failure      500    {object}   models.ErrorResponse  "Internal Server Error"
+// @Router       /validate-token [get]
+// @Security ApiKeyAuth
+// @Security Bearer
 func ValidateToken(tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

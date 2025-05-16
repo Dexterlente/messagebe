@@ -31,3 +31,19 @@ type UserResponse struct {
 type ChangePasswordResponse struct {
 	Message string `json:"message"`
 }
+
+type LoginResponse struct {
+	ID    int    `json:"id"`
+	Token string `json:"token"`
+}
+
+type Claims struct {
+	Exp      float64 `json:"exp"`
+	UserID   int     `json:"user_id"`
+	Username string  `json:"username"`
+}
+
+type TokenValidationResponse struct {
+	Message string `json:"message"`
+	Claims  Claims `json:"claims"`
+}
