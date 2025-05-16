@@ -14,6 +14,19 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// SendMessageHandler handles sending messages between users.
+// @Summary Send a message
+// @Description Send a message from one user to another
+// @Tags Messages
+// @Accept json
+// @Produce json
+// @Param message body models.SendMessageRequest true "Message content"
+// @Success 201 {object} models.MessageResponseSucess "Message sent successfully"
+// @Failure 400 {object} models.ErrorResponse "Invalid request"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "Internal Server Error"
+// @Router /send-message [post]
+// @Security ApiKeyAuth
 func SendMessageHandler(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -47,6 +60,22 @@ func SendMessageHandler(db *sqlx.DB) http.HandlerFunc {
 	}
 }
 
+// GetMessagesHandler handles fetching messages between two users.
+// @Summary Get messages
+// @Description Get messages between two users
+// @Tags Messages
+// @Accept json
+// @Produce json
+// @Param receiver_id query int true "Receiver ID"
+// @Success 200 {object} models.GetMessagesResponse "Messages retrieved successfully"
+// @Failure 400 {object} models.ErrorResponse "Invalid request"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "Internal Server Error"
+// @Router /messages [get]
+// @Security ApiKeyAuth
+// @Param page query int false "Page number"
+// @Param limit query int false "Number of items per page"
+// @Param offset query int false "Offset for pagination"
 func GetMessagesHandler(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {

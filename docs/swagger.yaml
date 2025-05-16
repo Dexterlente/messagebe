@@ -16,7 +16,6 @@ definitions:
   models.Claims:
     properties:
       exp:
-        description: UNIX timestamp as float64
         type: number
       user_id:
         type: integer
@@ -48,6 +47,23 @@ definitions:
       error:
         type: string
     type: object
+  models.GetMessagesResponse:
+    properties:
+      count:
+        type: integer
+      limit:
+        type: integer
+      messages:
+        items:
+          $ref: '#/definitions/models.Message'
+        type: array
+      offset:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+    type: object
   models.LoginRequest:
     properties:
       password:
@@ -61,6 +77,35 @@ definitions:
         type: integer
       token:
         type: string
+    type: object
+  models.Message:
+    properties:
+      content:
+        type: string
+      conversation_id:
+        description: Fk to the conversation
+        type: integer
+      id:
+        description: Pk of the message
+        type: integer
+      receiverID:
+        type: integer
+      senderID:
+        type: integer
+      sentAt:
+        type: string
+    type: object
+  models.MessageResponseSucess:
+    properties:
+      message:
+        type: string
+    type: object
+  models.SendMessageRequest:
+    properties:
+      content:
+        type: string
+      receiver_id:
+        type: integer
     type: object
   models.TokenValidationResponse:
     properties:
@@ -189,6 +234,89 @@ paths:
       summary: User login
       tags:
       - Users
+  /messages:
+    get:
+      consumes:
+      - application/json
+      description: Get messages between two users
+      parameters:
+      - description: Receiver ID
+        in: query
+        name: receiver_id
+        required: true
+        type: integer
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Messages retrieved successfully
+          schema:
+            $ref: '#/definitions/models.GetMessagesResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get messages
+      tags:
+      - Messages
+  /send-message:
+    post:
+      consumes:
+      - application/json
+      description: Send a message from one user to another
+      parameters:
+      - description: Message content
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/models.SendMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Message sent successfully
+          schema:
+            $ref: '#/definitions/models.MessageResponseSucess'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Send a message
+      tags:
+      - Messages
   /users:
     get:
       description: Returns a list of all users (JWT-protected)

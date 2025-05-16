@@ -47,3 +47,16 @@ type TokenValidationResponse struct {
 	Message string `json:"message"`
 	Claims  Claims `json:"claims"`
 }
+
+type MessageResponseSucess struct {
+	Message string `json:"message"`
+}
+
+type GetMessagesResponse struct {
+	Messages []Message `json:"messages"`
+	Count    int       `json:"count"`
+	Total    int       `json:"total"`
+	Offset   int       `json:"offset"`
+	Page     int       `json:"page"`
+	Limit    int       `json:"limit"`
+}
