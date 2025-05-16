@@ -124,6 +124,21 @@ func GetMessagesHandler(db *sqlx.DB) http.HandlerFunc {
 	}
 }
 
+// GetConversationsHandler handles fetching conversations for a user.
+// @Summary Get conversations
+// @Description Get conversations for a user
+// @Tags Messages
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.GetConversationsResponse "Conversations retrieved successfully"
+// @Failure 400 {object} models.ErrorResponse "Invalid request"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "Internal Server Error"
+// @Router /conversations [get]
+// @Security ApiKeyAuth
+// @Param page query int false "Page number"
+// @Param limit query int false "Number of items per page"
+// @Param offset query int false "Offset for pagination"
 func GetConversationsHandler(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {

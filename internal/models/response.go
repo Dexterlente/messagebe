@@ -60,3 +60,12 @@ type GetMessagesResponse struct {
 	Page     int       `json:"page"`
 	Limit    int       `json:"limit"`
 }
+
+type GetConversationsResponse struct {
+	Conversations []ConversationInfo `json:"conversations"`
+	Count         int                `json:"count"`
+	Total         int                `json:"total"`
+	Offset        int                `json:"offset"`
+	Page          int                `json:"page"`
+	Limit         int                `json:"limit"`
+}

@@ -22,6 +22,17 @@ definitions:
       username:
         type: string
     type: object
+  models.ConversationInfo:
+    properties:
+      conversation_id:
+        type: integer
+      last_message_at:
+        type: string
+      last_message_content:
+        type: string
+      user_id:
+        type: integer
+    type: object
   models.CreateUserPayload:
     properties:
       email:
@@ -46,6 +57,23 @@ definitions:
     properties:
       error:
         type: string
+    type: object
+  models.GetConversationsResponse:
+    properties:
+      conversations:
+        items:
+          $ref: '#/definitions/models.ConversationInfo'
+        type: array
+      count:
+        type: integer
+      limit:
+        type: integer
+      offset:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
     type: object
   models.GetMessagesResponse:
     properties:
@@ -177,6 +205,48 @@ paths:
       summary: Change user password
       tags:
       - Users
+  /conversations:
+    get:
+      consumes:
+      - application/json
+      description: Get conversations for a user
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Conversations retrieved successfully
+          schema:
+            $ref: '#/definitions/models.GetConversationsResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get conversations
+      tags:
+      - Messages
   /create-user:
     post:
       consumes:
