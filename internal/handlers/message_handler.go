@@ -166,8 +166,8 @@ func GetConversationsHandler(db *sqlx.DB) http.HandlerFunc {
 		response := make([]map[string]any, 0, len(conversations))
 		for _, conv := range conversations {
 			lastMessageAt := ""
-			if conv.LastMessageAt.Valid {
-				lastMessageAt = conv.LastMessageAt.Time.Format(time.RFC3339)
+			if !conv.LastMessageAt.IsZero() {
+				lastMessageAt = conv.LastMessageAt.Format(time.RFC3339)
 			}
 			item := map[string]any{
 				"conversation_id":      conv.ConversationID,

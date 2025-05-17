@@ -264,8 +264,25 @@ func TokenValidationHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Token is valid. Claims: %v", token.Claims)
 }
 
+// SearchUsersHandler handles searching for users by username.
+// @Summary      Search users by username
+// @Description  Searches for users by username
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Param        username  query      string  true  "Partial username"
+// @Success      200       {array}    models.UserSearch  "List of users"
+// @Failure      400       {object}   models.ErrorResponse  "Bad Request"
+// @Failure	  500       {object}   models.ErrorResponse  "Internal Server Error"
+// @Router       /search-users [get]
+// @Security ApiKeyAuth
+// @Security Bearer
 func SearchUsersHandler(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
+		}
 		partial := r.URL.Query().Get("username")
 		if partial == "" {
 			http.Error(w, "username param is required", http.StatusBadRequest)

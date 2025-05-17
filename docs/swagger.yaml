@@ -161,6 +161,17 @@ definitions:
       username:
         type: string
     type: object
+  models.UserSearch:
+    properties:
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      username:
+        type: string
+    type: object
 info:
   contact: {}
   description: This is a Messaging app backend.
@@ -351,6 +362,40 @@ paths:
       summary: Get messages
       tags:
       - Messages
+  /search-users:
+    get:
+      consumes:
+      - application/json
+      description: Searches for users by username
+      parameters:
+      - description: Partial username
+        in: query
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of users
+          schema:
+            items:
+              $ref: '#/definitions/models.UserSearch'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      - Bearer: []
+      summary: Search users by username
+      tags:
+      - Users
   /send-message:
     post:
       consumes:
