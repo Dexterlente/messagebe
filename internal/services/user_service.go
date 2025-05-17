@@ -22,3 +22,11 @@ func ChangePassword(db *sqlx.DB, req *models.ChangePasswordRequest) error {
 func GetUserByUsername(db *sqlx.DB, username string) (*models.User, error) {
 	return repositories.GetUserByUsername(db, username)
 }
+
+func SearchUsersByUsername(db *sqlx.DB, username string) ([]models.UserSearch, error) {
+	user, err := repositories.SearchUsersByUsername(db, username)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}

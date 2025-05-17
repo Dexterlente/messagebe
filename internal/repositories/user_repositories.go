@@ -2,8 +2,10 @@ package repositories
 
 import (
 	"database/sql"
+	"fmt"
 	"go-backend/internal/models"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -74,4 +76,17 @@ func GetUserByUsername(db *sqlx.DB, username string) (*models.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func SearchUsersByUsername(db *sqlx.DB, searchString string) ([]models.UserSearch, error) {
+	var users []models.UserSearch
+	searchTerm := "%" + strings.ToLower(searchString) + "%"
+	query := `SELECT id, username, first_name, last_name FROM users WHERE username ILIKE $1`
+
+	err := db.Select(&users, query, searchTerm)
+	if err != nil {
+		return nil, fmt.Errorf("search query failed: %w", err)
+	}
+
+	return users, nil
 }

@@ -263,3 +263,24 @@ func TokenValidationHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "Token is valid. Claims: %v", token.Claims)
 }
+
+func SearchUsersHandler(db *sqlx.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		partial := r.URL.Query().Get("username")
+		if partial == "" {
+			http.Error(w, "username param is required", http.StatusBadRequest)
+			return
+		}
+
+		users, err := services.SearchUsersByUsername(db, partial)
+		if err != nil {
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(users); err != nil {
+			http.Error(w, "failed to encode json", http.StatusInternalServerError)
+		}
+	}
+}

@@ -15,6 +15,13 @@ type User struct {
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 
+type UserSearch struct {
+	ID        int    `db:"id" json:"id"`
+	UserName  string `db:"username" json:"username"`
+	FirstName string `db:"first_name" json:"first_name"`
+	LastName  string `db:"last_name" json:"last_name"`
+}
+
 type ChangePasswordRequest struct {
 	UserID      int    `db:"id" json:"user_id"`
 	OldPassword string `json:"old_password"`
