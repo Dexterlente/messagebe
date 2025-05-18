@@ -1,3 +1,27 @@
+# How to Run This Go Backend Project
+
+## Prerequisites
+- [Go](https://go.dev/dl/) installed (version 1.23.0+ recommended)
+- [Air](go install github.com/air-verse/air@latest) installed for hot reloading (optional but recommended)
+
+## Steps
+
+1. **Clone the repository**
+
+```bash
+git clone https://github.com/Dexterlente/messagebe.git
+cd go-backend
+go mod download
+
+```
+1. **Run the project**
+
+To start with hot reload using Air (run this in the root directory):
+```bash
+air
+```
+
+
 ```bash
 go-backend/
 │
