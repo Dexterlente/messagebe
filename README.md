@@ -14,13 +14,18 @@ cd go-backend
 go mod download
 
 ```
-1. **Run the project**
+2. **Run the project**
 
 To start with hot reload using Air (run this in the root directory):
 ```bash
 air
 ```
+3. *** Test the routes***
 
+go to browser to check the documentation or different routes
+``` http://localhost:5000/swagger/index.html ```
+
+![Routes Diagram](assets/routes.png)
 
 ```bash
 go-backend/
