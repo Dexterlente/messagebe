@@ -20,9 +20,9 @@ To start with hot reload using Air (run this in the root directory):
 ```bash
 air
 ```
-3. *** Test the routes***
+3. ***Test the routes***
 
-go to browser to check the documentation or different routes
+go to browser to check the documentation of different routes
 ``` http://localhost:5000/swagger/index.html ```
 
 ![Routes Diagram](assets/routes.png)
