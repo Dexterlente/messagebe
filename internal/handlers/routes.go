@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"net/http"
+	"sync"
 
+	"github.com/gorilla/websocket"
 	"github.com/jmoiron/sqlx"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
@@ -50,4 +52,7 @@ func RegisterRoutes(db *sqlx.DB) {
 	http.HandleFunc("/messages", GetMessagesHandler(db))
 	http.HandleFunc("/send-message", SendMessageHandler(db))
 	http.HandleFunc("/conversations", GetConversationsHandler(db))
+
+	//message_ws.go
+	http.HandleFunc("/ws-convo", HandleWebSocket(db, make(map[int]*websocket.Conn), &sync.RWMutex{}))
 }

@@ -15,6 +15,7 @@ require (
 )
 
 require (
+	github.com/gorilla/websocket v1.5.3
 	github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe // indirect
 	golang.org/x/net v0.40.0 // indirect
 )
