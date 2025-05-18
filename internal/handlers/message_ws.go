@@ -20,6 +20,15 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+// @Summary WebSocket chat
+// @Description Connect to this endpoint via WebSocket to send/receive messages
+// @Tags WS Messages
+// @Produce json
+// @Success 101 {string} string "Switching Protocols"
+// @Failure 401 {string} string "Unauthorized"
+// @Router /ws-send [get]
+// @Security ApiKeyAuth
+// @Param Authorization header string true "	Bearer <token>"
 func HandleWebSocket(db *sqlx.DB, clients map[int]*websocket.Conn, clientsMu *sync.RWMutex) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		senderID, err := GetUserID(r)

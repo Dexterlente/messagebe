@@ -493,6 +493,31 @@ paths:
       summary: Validate JWT token
       tags:
       - Users
+  /ws-send:
+    get:
+      description: Connect to this endpoint via WebSocket to send/receive messages
+      parameters:
+      - description: "\tBearer <token>"
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "101":
+          description: Switching Protocols
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: WebSocket chat
+      tags:
+      - WS Messages
 securityDefinitions:
   ApiKeyAuth:
     description: 'Enter JWT token as: Bearer {token}'
