@@ -31,4 +31,6 @@ type ConversationInfo struct {
 	LastMessageAt      time.Time      `db:"last_message_at" json:"last_message_at"`
 	LastMessageContent string         `db:"last_message_content" json:"last_message_content"`
 	ImageProfile       sql.NullString `db:"image_profile" json:"image_profile"`
+	FirstName          string         `db:"first_name" json:"first_name"`
+	LastName           string         `db:"last_name" json:"last_name"`
 }

@@ -98,6 +98,8 @@ func GetConversationsRepository(db *sqlx.DB, userID, limit, offset int) ([]model
 				WHEN c.user1_id = $1 THEN c.user2_id 
 				ELSE c.user1_id 
 			END AS user_id,
+			u.first_name,
+			u.last_name,
 			u.image_profile,
 			m.sent_at AS last_message_at,
 			LEFT(m.content, 20) AS last_message_content

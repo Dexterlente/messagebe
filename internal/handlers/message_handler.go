@@ -180,6 +180,8 @@ func GetConversationsHandler(db *sqlx.DB) http.HandlerFunc {
 				"last_message_at":      lastMessageAt,
 				"last_message_content": conv.LastMessageContent,
 				"image_profile":        img,
+				"first_name":           conv.FirstName,
+				"last_name":            conv.LastName,
 			}
 			response = append(response, item)
 		}
