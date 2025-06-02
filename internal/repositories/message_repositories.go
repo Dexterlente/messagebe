@@ -98,6 +98,7 @@ func GetConversationsRepository(db *sqlx.DB, userID, limit, offset int) ([]model
 				WHEN c.user1_id = $1 THEN c.user2_id 
 				ELSE c.user1_id 
 			END AS user_id,
+			u.image_profile,
 			m.sent_at AS last_message_at,
 			LEFT(m.content, 20) AS last_message_content
 		FROM conversations c
@@ -108,6 +109,10 @@ func GetConversationsRepository(db *sqlx.DB, userID, limit, offset int) ([]model
 			ORDER BY sent_at DESC
 			LIMIT 1
 		) m ON true
+		JOIN users u ON u.id = CASE 
+			WHEN c.user1_id = $1 THEN c.user2_id 
+			ELSE c.user1_id 
+		END
 		WHERE c.user1_id = $1 OR c.user2_id = $1
 		ORDER BY m.sent_at DESC NULLS LAST
 		LIMIT $2 OFFSET $3;

@@ -62,6 +62,7 @@ func migrateUsers(db *sqlx.DB) error {
             email VARCHAR(100) NOT NULL UNIQUE,
             username VARCHAR(100) UNIQUE,
             password VARCHAR(255) NOT NULL,
+			image_profile TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )

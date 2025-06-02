@@ -14,7 +14,7 @@ import (
 
 func GetUsers(db *sqlx.DB) ([]models.UserResponse, error) {
 	var users []models.UserResponse
-	err := db.Select(&users, "SELECT id, first_name, last_name, email, username FROM users")
+	err := db.Select(&users, "SELECT id, first_name, last_name, email, username, image_profile FROM users")
 	return users, err
 }
 

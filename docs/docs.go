@@ -592,6 +592,9 @@ const docTemplate = `{
                 "conversation_id": {
                     "type": "integer"
                 },
+                "image_profile": {
+                    "$ref": "#/definitions/models.NullableString"
+                },
                 "last_message_at": {
                     "type": "string"
                 },
@@ -746,6 +749,17 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "models.NullableString": {
+            "type": "object",
+            "properties": {
+                "string": {
+                    "type": "string"
+                },
+                "valid": {
+                    "type": "boolean"
                 }
             }
         },
