@@ -592,13 +592,19 @@ const docTemplate = `{
                 "conversation_id": {
                     "type": "integer"
                 },
+                "first_name": {
+                    "type": "string"
+                },
                 "image_profile": {
-                    "$ref": "#/definitions/models.NullableString"
+                    "type": "string"
                 },
                 "last_message_at": {
                     "type": "string"
                 },
                 "last_message_content": {
+                    "type": "string"
+                },
+                "last_name": {
                     "type": "string"
                 },
                 "user_id": {
@@ -749,17 +755,6 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "type": "string"
-                }
-            }
-        },
-        "models.NullableString": {
-            "type": "object",
-            "properties": {
-                "string": {
-                    "type": "string"
-                },
-                "valid": {
-                    "type": "boolean"
                 }
             }
         },

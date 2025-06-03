@@ -1,7 +1,6 @@
 package models
 
 import (
-	"database/sql"
 	"time"
 )
 
@@ -26,11 +25,11 @@ type Conversation struct {
 }
 
 type ConversationInfo struct {
-	ConversationID     int            `db:"conversation_id" json:"conversation_id"`
-	UserID             int            `db:"user_id" json:"user_id"`
-	LastMessageAt      time.Time      `db:"last_message_at" json:"last_message_at"`
-	LastMessageContent string         `db:"last_message_content" json:"last_message_content"`
-	ImageProfile       sql.NullString `db:"image_profile" json:"image_profile"`
-	FirstName          string         `db:"first_name" json:"first_name"`
-	LastName           string         `db:"last_name" json:"last_name"`
+	ConversationID     int       `db:"conversation_id" json:"conversation_id"`
+	UserID             int       `db:"user_id" json:"user_id"`
+	LastMessageAt      time.Time `db:"last_message_at" json:"last_message_at"`
+	LastMessageContent string    `db:"last_message_content" json:"last_message_content"`
+	ImageProfile       *string   `db:"image_profile" json:"image_profile"`
+	FirstName          string    `db:"first_name" json:"first_name"`
+	LastName           string    `db:"last_name" json:"last_name"`
 }

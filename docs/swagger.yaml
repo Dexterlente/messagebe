@@ -26,11 +26,15 @@ definitions:
     properties:
       conversation_id:
         type: integer
+      first_name:
+        type: string
       image_profile:
-        $ref: '#/definitions/models.NullableString'
+        type: string
       last_message_at:
         type: string
       last_message_content:
+        type: string
+      last_name:
         type: string
       user_id:
         type: integer
@@ -129,13 +133,6 @@ definitions:
     properties:
       message:
         type: string
-    type: object
-  models.NullableString:
-    properties:
-      string:
-        type: string
-      valid:
-        type: boolean
     type: object
   models.SendMessageRequest:
     properties:

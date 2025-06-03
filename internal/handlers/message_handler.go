@@ -170,8 +170,8 @@ func GetConversationsHandler(db *sqlx.DB) http.HandlerFunc {
 				lastMessageAt = conv.LastMessageAt.Format(time.RFC3339)
 			}
 			img := ""
-			if conv.ImageProfile.Valid {
-				img = conv.ImageProfile.String
+			if conv.ImageProfile != nil {
+				img = *conv.ImageProfile
 			}
 
 			item := map[string]any{
