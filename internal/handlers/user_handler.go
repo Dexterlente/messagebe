@@ -41,6 +41,63 @@ func GetUserID(r *http.Request) (int, error) {
 	return 0, errors.New("invalid token claims")
 }
 
+func GetUserById(db *sqlx.DB, userID int) (*models.User, error) {
+	var user models.User
+	query := "SELECT id, username, first_name, last_name, image_profile FROM users WHERE id = $1"
+	err := db.Get(&user, query, userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("user with ID %d not found", userID)
+		}
+		return nil, fmt.Errorf("error retrieving user: %v", err)
+	}
+	return &user, nil
+}
+func GetUserByIDHandler(db *sqlx.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get query param "id"
+		idStr := r.URL.Query().Get("id")
+		if idStr == "" {
+			http.Error(w, "Missing id parameter", http.StatusBadRequest)
+			return
+		}
+
+		// Convert to int
+		userID, err := strconv.Atoi(idStr)
+		if err != nil {
+			http.Error(w, "Invalid id parameter", http.StatusBadRequest)
+			return
+		}
+
+		// Call your DB function
+		user, err := GetUserById(db, userID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				http.Error(w, "User not found", http.StatusNotFound)
+			} else {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+			return
+		}
+
+		img := ""
+		if user.ImageProfile.Valid {
+			img = user.ImageProfile.String
+		}
+
+		response := models.UserDetailReponse{
+			ID:           user.ID,
+			Username:     user.UserName,
+			FirstName:    user.FirstName,
+			LastName:     user.LastName,
+			ImageProfile: img,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+	}
+}
+
 // GetUsers handles GET /users
 // @Summary Get all users
 // @Description Returns a list of all users (JWT-protected)

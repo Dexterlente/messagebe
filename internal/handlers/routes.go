@@ -47,6 +47,7 @@ func RegisterRoutes(db *sqlx.DB) {
 	http.HandleFunc("/login", LoginHandlerFunc(db))
 	http.HandleFunc("/validate-token", TokenValidationHandler)
 	http.HandleFunc("/search-users", SearchUsersHandler(db))
+	http.HandleFunc("/user", GetUserByIDHandler(db))
 
 	//message_handler.go
 	http.HandleFunc("/messages", GetMessagesHandler(db))

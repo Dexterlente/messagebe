@@ -32,6 +32,14 @@ type UserResponse struct {
 	UpdatedAt    time.Time      `db:"updated_at" json:"updated_at"`
 }
 
+type UserDetailReponse struct {
+	ID           int    `db:"id" json:"id"`
+	Username     string `db:"username" json:"username"`
+	FirstName    string `db:"first_name" json:"first_name"`
+	LastName     string `db:"last_name" json:"last_name"`
+	ImageProfile string `db:"image_profile" json:"image_profile"`
+}
+
 type ChangePasswordResponse struct {
 	Message string `json:"message"`
 }
