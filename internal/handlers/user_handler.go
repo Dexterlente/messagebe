@@ -41,18 +41,17 @@ func GetUserID(r *http.Request) (int, error) {
 	return 0, errors.New("invalid token claims")
 }
 
-func GetUserById(db *sqlx.DB, userID int) (*models.User, error) {
-	var user models.User
-	query := "SELECT id, username, first_name, last_name, image_profile FROM users WHERE id = $1"
-	err := db.Get(&user, query, userID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("user with ID %d not found", userID)
-		}
-		return nil, fmt.Errorf("error retrieving user: %v", err)
-	}
-	return &user, nil
-}
+// GetUserByIDHandler handles GET /user
+// @Summary Get user by ID
+// @Description Returns user details by ID
+// @Tags Users
+// @Produce json
+// @Param id query int true "User ID"
+// @Success 200 {object} models.UserDetailReponse
+// @Failure 400 {object} models.ErrorResponse "Bad Request"
+// @Failure 404 {object} models.ErrorResponse "User Not Found"
+// @Failure 500 {object} models.ErrorResponse "Internal Server Error"
+// @Router /user [get]
 func GetUserByIDHandler(db *sqlx.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Get query param "id"
@@ -69,8 +68,7 @@ func GetUserByIDHandler(db *sqlx.DB) http.HandlerFunc {
 			return
 		}
 
-		// Call your DB function
-		user, err := GetUserById(db, userID)
+		user, err := services.GetUserById(db, userID)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				http.Error(w, "User not found", http.StatusNotFound)
@@ -80,21 +78,8 @@ func GetUserByIDHandler(db *sqlx.DB) http.HandlerFunc {
 			return
 		}
 
-		img := ""
-		if user.ImageProfile.Valid {
-			img = user.ImageProfile.String
-		}
-
-		response := models.UserDetailReponse{
-			ID:           user.ID,
-			Username:     user.UserName,
-			FirstName:    user.FirstName,
-			LastName:     user.LastName,
-			ImageProfile: img,
-		}
-
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
+		json.NewEncoder(w).Encode(user)
 	}
 }
 

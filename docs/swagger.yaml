@@ -148,6 +148,19 @@ definitions:
       message:
         type: string
     type: object
+  models.UserDetailReponse:
+    properties:
+      first_name:
+        type: string
+      id:
+        type: integer
+      image_profile:
+        type: string
+      last_name:
+        type: string
+      username:
+        type: string
+    type: object
   models.UserList:
     properties:
       created_at:
@@ -438,6 +451,37 @@ paths:
       summary: Send a message
       tags:
       - Messages
+  /user:
+    get:
+      description: Returns user details by ID
+      parameters:
+      - description: User ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserDetailReponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: User Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get user by ID
+      tags:
+      - Users
   /users:
     get:
       description: Returns a list of all users (JWT-protected)

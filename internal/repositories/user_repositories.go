@@ -18,6 +18,19 @@ func GetUsers(db *sqlx.DB) ([]models.UserResponse, error) {
 	return users, err
 }
 
+func GetUserById(db *sqlx.DB, userID int) (*models.UserDetailReponse, error) {
+	var user models.UserDetailReponse
+	query := "SELECT id, username, first_name, last_name, image_profile FROM users WHERE id = $1"
+	err := db.Get(&user, query, userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("user with ID %d not found", userID)
+		}
+		return nil, fmt.Errorf("error retrieving user: %v", err)
+	}
+	return &user, nil
+}
+
 func CreateUser(db *sqlx.DB, user *models.User) (int, error) {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)

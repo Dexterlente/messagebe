@@ -11,6 +11,10 @@ func GetUsers(db *sqlx.DB) ([]models.UserResponse, error) {
 	return repositories.GetUsers(db)
 }
 
+func GetUserById(db *sqlx.DB, userID int) (*models.UserDetailReponse, error) {
+	return repositories.GetUserById(db, userID)
+}
+
 func CreateUser(db *sqlx.DB, user *models.User) (int, error) {
 	return repositories.CreateUser(db, user)
 }
